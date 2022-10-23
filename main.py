@@ -16,9 +16,8 @@ def clear():
 
 def exit_program():
     # close all sessions then exit the program.
-    close_all_sessions()
+    close_all_sessions() # FIX: need to implement "close all sessions" part # defined in database_functions.py file
     pass
-
 
 def login_menu(login_options):
     """
@@ -52,7 +51,7 @@ def user_menu(user_options, user = None):
         print(" Welcome, ",current_user)
     print(" Here are your options:\n")
     # Displaying each option and it's corresponding reference number.
-    for i, option in enumerate(options):
+    for i, option in enumerate(user_options):
         # Example, " 1 : Start a session "
         print(" ",str(i+1),":",option) # reference numbers range from 1-n
     print("--------------------------------------")
@@ -69,11 +68,27 @@ def main():
         login_menu(login_options)
         user_Input = input("Your Input : ")
         if user_Input == "q" or user_Input == "Q": # Exit the Program
-            exit_program()
+            exit_program() 
+       
+        """
+        -- Need to Implement login proccessing here --
+
+        """
 
 
+        # User Menu -- after user has succesfully logged in
+        while True:
+            user_options = ["Start a session", "Search for songs and playlists", 
+                "Search for artists", "End the session"
+                ]
+            user_menu(user_options)
+            user_Input = input("Your Input : ")
+            if user_Input == "q" or user_Input == "Q": # Exit the Program
+                exit_program() 
+            """
+            -- Implement user input processing here -- 
 
-
+            """
 
 
 
