@@ -11,5 +11,10 @@ def commit(connection):
 	connection.commit()
 	connection.close()
 
-def close_all_sessions():
-	pass # close sessions by setting all NULL values in sessions to current date/time
+def close_all_sessions(): 
+	pass # TODO : close sessions by setting all NULL values in sessions.end to current date/time
+	exit()
+
+def login():
+	# User login
+	pass
