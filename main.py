@@ -5,6 +5,7 @@ Mini-Project 1
 
 # Import modules
 from database_functions import *
+from getpass import *
 import os
 DEBUG = True
 
@@ -87,7 +88,7 @@ def process_login(option):
     username = None
     if option == "User/Artist login":
         username = input("\nInput your Username: ")
-        pwd = input("\nInput your Password: ")
+        pwd = getpass(prompt='\nInput your password: ') 
         if is_user(username) and is_artist(username):
             choice = input("\n Input \'1\' to log in as a user, or Input \'2\' to log in as an artist.")
             if not safe_Input(choice, [1,2]):
@@ -105,7 +106,7 @@ def process_login(option):
     elif option == "Register User":
         username = input("\nInput your Username (4 characters): ")
         name = input("\nInput your Name: ")
-        pwd = input("\nInput your Password: ")
+        pwd = getpass(prompt='\nInput your password: ') 
         username = register_user(username, name, pwd) # returns None if unsuccessful. i.e., user with that uid already exists.    
 
     return username 
