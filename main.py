@@ -86,12 +86,13 @@ def process_login(option):
     # probably need to return cid/aid if they log in successfully.
 
 def main():
-    login_options = ["User/Artist login", "Register user"]
+    
     database = "./tables.db"
     assert(os.path.exists(database)) 
 
     # Log in menu
     while True:
+        login_options = ["User/Artist login", "Register user"]
         login_menu(login_options)
         user_Input = input(" Your Input: ") # TODO: exception handling (read from file?). Probably dont need.
         if user_Input in ['q','Q']: 
