@@ -6,6 +6,7 @@ Mini-Project 1
 # Import modules
 from database_functions import *
 import os
+DEBUG = True
 
 def clear():
     '''
@@ -23,7 +24,7 @@ def login_menu(login_options):
     """
     prints login menu to the terminal
 
-    options (list of strings) : The options to display in the menu
+    login_options (list of strings) : The options to display in the menu
     """
     clear()
     print("--------------------------------------")
@@ -41,6 +42,7 @@ def user_menu(user_options, user = None):
     prints user menu to the terminal
 
     options (list of strings) : The options to display in the menu
+    user (string) : name of user
     """
     clear()
     print("--------------------------------------")
@@ -48,7 +50,7 @@ def user_menu(user_options, user = None):
     print(" Enter \'q\' to exit the program")
     print(" Enter \'l\' to log out")
     if user is not None:
-        print(" Welcome, ",current_user)
+        print(" Welcome, ", user)
     print(" Here are your options:\n")
     # Displaying each option and it's corresponding reference number.
     for i, option in enumerate(user_options):
@@ -61,9 +63,11 @@ def safe_Input(user_Input, options):
     Checks - String is not empty, in the range of our options,
 
     Parameters: 
-    options (list of strings) : The options listed in the corresponding menu.
+    options (list of strings) : The options to select from
+    user input(list of strings) : either 1 or 2, corresponding to user or artist respectively.
+    
     Returns
-    (string) user_Input : The option selected by the user. 
+    bool
     """
 
     if not user_Input.isdigit() or user_Input == '':
@@ -78,12 +82,33 @@ def process_login(option):
     Parameters:
     option (string) : The selection made by the user in the Login screen.
     Returns:
+    username (string) : uid or aid of the user logging in. Returns None if login/register is unsuccessful.
     """
-    if option == "User/Artist Login":
-        pass 
+    username = None
+    if option == "User/Artist login":
+        username = input("\nInput your Username: ")
+        pwd = input("\nInput your Password: ")
+        if is_user(username) and is_artist(username):
+            choice = input("\n Input \'1\' to log in as a user, or Input \'2\' to log in as an artist.")
+            if not safe_Input(choice, [1,2]):
+                return None # not one of the options. 
+            if choice == 1:
+                username = user_login(username, pwd)
+            else:
+                username = artist_login(username, pwd)
+        if is_user(username): # cannot be both user and artist. at most 1.
+            return user_login(username, pwd)
+        if is_artist(username):
+            return artist_login(username, pwd)
+        return None # user does not exist in either table.
+
     elif option == "Register User":
-        pass 
-    # probably need to return cid/aid if they log in successfully.
+        username = input("\nInput your Username (4 characters): ")
+        name = input("\nInput your Name: ")
+        pwd = input("\nInput your Password: ")
+        username = register_user(username, name, pwd) # returns None if unsuccessful. i.e., user with that uid already exists.    
+
+    return username 
 
 def main():
     
@@ -92,21 +117,23 @@ def main():
 
     # Log in menu
     while True:
-        login_options = ["User/Artist login", "Register user"]
+        username = None
+        login_options = ["User/Artist login", "Register User"]
         login_menu(login_options)
         user_Input = input(" Your Input: ") # TODO: exception handling (read from file?). Probably dont need.
         if user_Input in ['q','Q']: 
             exit_program()          # close sessions and exit
         if safe_Input(user_Input, login_options): # Checks if input is valid.
-            process_login(login_options[int(user_Input)-1]) # User input is 1-indexed (design choice) while python arrays are 0-indexed.
-
+            username = process_login(login_options[int(user_Input)-1]) # User input is 1-indexed (design choice) while python arrays are 0-indexed.
+        if username is None: 
+            continue # login is unsuccessful, restart the login screen.
 
         # User Menu -- after user has succesfully logged in
         while True:
             user_options = ["Start a session", "Search for songs and playlists", 
                 "Search for artists", "End the session"
                 ]
-            user_menu(user_options)
+            user_menu(user_options, username)
             user_Input = input("Your Input : ")
             if user_Input in ['q','Q']: 
                 exit_program()      # close sessions and exit
