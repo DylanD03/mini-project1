@@ -1,4 +1,6 @@
+import imp
 import sqlite3
+import random
 
 def connect():
 	# connects to the sqlite database
@@ -80,4 +82,48 @@ def is_artist(aid):
 		return False # artist does not exist
 	return True # artist does exist
 
+def start_session(uid):
+	"""
+	Generates random session number for the user
+	Ensure that the generates session number does not exist
+	"""
+	connection, cursor = connect()
 
+	cursor.execute("SELECT sno FROM sessions WHERE uid = ?", (uid,))
+	user_sessions = cursor.fetchall()
+
+	valid = True
+	while valid:
+		new_session = random.randint(1, 1000)
+
+		# If this is a new user
+		if len(user_sessions) == 0:
+			valid = False
+			break
+		
+		# Gather all user session
+		all_sessions = []
+		for session in user_sessions:
+			all_sessions.append(session[0])
+
+		# Esnure that the sesion number is unique
+		valid = False
+		if new_session in all_sessions:
+			valid = True
+		
+	# Add new session value
+	query = '''INSERT INTO sessions VALUES (?, ?, date(), NULL);'''
+	cursor.execute(query, (uid, new_session,))
+	commit(connection)
+	return new_session
+
+def end_session(uid, sno):
+	"""
+	End session sno for specified user uid
+	Update the end date/time
+	"""
+	connection, cursor = connect()
+
+	query = '''UPDATE sessions SET end = date() WHERE uid = ? AND sno = ?;'''
+	cursor.execute(query, (uid, sno,))
+	commit(connection)

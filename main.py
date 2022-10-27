@@ -4,6 +4,7 @@ Mini-Project 1
 """
 
 # Import modules
+from pickle import TRUE
 from database_functions import *
 from getpass import *
 import os
@@ -119,6 +120,7 @@ def main():
     # Log in menu
     while True:
         username = None
+        session = None
         login_options = ["User/Artist login", "Register User"]
         login_menu(login_options)
         user_Input = input(" Your Input: ") # TODO: exception handling (read from file?). Probably dont need.
@@ -144,6 +146,21 @@ def main():
             -- Implement user input processing here -- 
 
             """
+            # User selects: Start Session
+            if user_Input == '1':
+                session = start_session(username)
+
+            # User selects: End the session
+            if user_Input == '4':
+                # Ensure the user is in a current session
+                if session == None:
+                    print("You are not in a current session!")
+                    continue
+                else:
+                    end_session(username, session)
+                    session = None
+                    
+                   
 
 
 
