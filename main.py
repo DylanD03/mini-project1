@@ -20,9 +20,9 @@ def clear():
 def exit_program():
     # close all sessions then exit the program.
     close_all_sessions() # FIX: need to implement "close all sessions" part # defined in database_functions.py file
-    pass
+    exit()
 
-def login_menu(login_options):
+def login_menu(login_options, output):
     """
     prints login menu to the terminal
 
@@ -37,9 +37,11 @@ def login_menu(login_options):
     for i, option in enumerate(login_options):
         # Example, " 1 : User/Artist login"
         print(" ",str(i+1),":",option) # design choice - reference numbers range from 1-n (enumarate starts from i=0)
+    if output is not None:
+        print(output)
     print("--------------------------------------")
 
-def user_menu(user_options, user = None):
+def user_menu(user_options, user = None, output = None):
     """
     prints user menu to the terminal
 
@@ -58,6 +60,8 @@ def user_menu(user_options, user = None):
     for i, option in enumerate(user_options):
         # Example, " 1 : Start a session "
         print(" ",str(i+1),":",option) # design choice - reference numbers range from 1-n (enumarate starts from i=0)
+    if output is not None:
+        print(output)
     print("--------------------------------------")
 
 def safe_Input(user_Input, options):
@@ -117,18 +121,27 @@ def main():
     database = "./tables.db"
     assert(os.path.exists(database)) 
 
+    login_msg = None
     # Log in menu
     while True:
+        user_msg = None
         username = None
         session = None
+
         login_options = ["User/Artist login", "Register User"]
-        login_menu(login_options)
+        login_menu(login_options, login_msg)
+        login_msg = None
+
         user_Input = input(" Your Input: ") # TODO: exception handling (read from file?). Probably dont need.
         if user_Input in ['q','Q']: 
             exit_program()          # close sessions and exit
-        if safe_Input(user_Input, login_options): # Checks if input is valid.
-            username = process_login(login_options[int(user_Input)-1]) # User input is 1-indexed (design choice) while python arrays are 0-indexed.
+        if not safe_Input(user_Input, login_options): # Checks if input is valid.
+            login_msg = "\n Invalid input, try again!"
+            continue #     
+
+        username = process_login(login_options[int(user_Input)-1]) # User input is 1-indexed (design choice) while python arrays are 0-indexed.
         if username is None: 
+            login_msg = "\n Incorrect username or password, try again!"
             continue # login is unsuccessful, restart the login screen.
 
         # User Menu -- after user has succesfully logged in
@@ -136,28 +149,32 @@ def main():
             user_options = ["Start a session", "Search for songs and playlists", 
                 "Search for artists", "End the session"
                 ]
-            user_menu(user_options, username)
+
+            user_menu(user_options, username, user_msg)
+            user_msg = None
+
             user_Input = input("Your Input : ")
             if user_Input in ['q','Q']: 
                 exit_program()      # close sessions and exit
             if user_Input in ['l','L']:
                 break               # log out
-            """
-            -- Implement user input processing here -- 
+            if not safe_Input(user_Input, user_options): # Checks if input is valid.
+                user_msg = "\n Not a valid Input!"
+                continue            # return to start of user menu
 
-            """
             # User selects: Start Session
             if user_Input == '1':
                 session = start_session(username)
+                user_msg = "\n Session Started!"
 
             # User selects: End the session
             if user_Input == '4':
                 # Ensure the user is in a current session
                 if session == None:
-                    print("You are not in a current session!")
-                    continue
+                    user_msg = "\n You are not in a current session!"
                 else:
                     end_session(username, session)
+                    user_msg = "\n Session Ended!"
                     session = None
                     
                    
