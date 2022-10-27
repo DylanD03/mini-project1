@@ -15,7 +15,6 @@ def commit(connection):
 
 def close_all_sessions(): 
 	pass # TODO : close sessions by setting all NULL values in sessions.end to current date/time
-	exit()
 
 def user_login(uid,pwd):
 	""" returns user if succesful login, None if unsuccessful. """
