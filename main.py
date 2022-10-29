@@ -87,34 +87,37 @@ def process_login(option):
     Proccessing user input in the Login screen. 
     Parameters:
     option (string) : The selection made by the user in the Login screen.
-    Returns:
+    Returns: 
     username (string) : uid or aid of the user logging in. Returns None if login/register is unsuccessful.
     """
     username = None
     if option == "User/Artist login":
         username = input("\nInput your Username: ")
         pwd = getpass(prompt='\nInput your password: ') 
-        if is_user(username) and is_artist(username):
-            choice = input("\n Input \'1\' to log in as a user, or Input \'2\' to log in as an artist.")
+
+        if is_user(username) and is_artist(username): # username is stored in both the users and artists table
+            choice = input("\nInput \'1\' to log in as a user, or Input \'2\' to log in as an artist.\n\nYour Input : ")
             if not safe_Input(choice, [1,2]):
-                return None # not one of the options. 
-            if choice == 1:
+                return None, None # invalid input
+            if choice == '1':
                 username = user_login(username, pwd)
+                return "User", username
             else:
                 username = artist_login(username, pwd)
-        if is_user(username): # cannot be both user and artist. at most 1.
-            return user_login(username, pwd)
+                return "Artist", username
+
+        if is_user(username):
+            return "User", user_login(username, pwd)
         if is_artist(username):
-            return artist_login(username, pwd)
-        return None # user does not exist in either table.
+            return "Artist", artist_login(username, pwd)
+        return None, None # user does not exist in either table.
 
     elif option == "Register User":
         username = input("\nInput your Username (4 characters): ")
         name = input("\nInput your Name: ")
         pwd = getpass(prompt='\nInput your password: ') 
         username = register_user(username, name, pwd) # returns None if unsuccessful. i.e., user with that uid already exists.    
-
-    return username 
+        return "User", username 
 
 def main():
     
@@ -130,53 +133,109 @@ def main():
 
         login_options = ["User/Artist login", "Register User"]
         login_menu(login_options, login_msg)
-        login_msg = None
+        user_msg = None
 
         user_Input = input(" Your Input: ") # TODO: exception handling (read from file?). Probably dont need.
         if user_Input in ['q','Q']: 
             exit_program()          # close sessions and exit
         if not safe_Input(user_Input, login_options): # Checks if input is valid.
-            login_msg = "\n Invalid input, try again!"
-            continue #     
+            user_msg = "\n Invalid input, try again!"
+            continue    # restart the login screen     
 
-        username = process_login(login_options[int(user_Input)-1]) # User input is 1-indexed (design choice) while python arrays are 0-indexed.
+        login_type = None
+        login_type, username = process_login(login_options[int(user_Input)-1]) # User input is 1-indexed (design choice) while python arrays are 0-indexed.
+        
         if username is None: 
             login_msg = "\n Incorrect username or password, try again!"
-            continue # login is unsuccessful, restart the login screen.
+            continue    # restart the login screen.
+        
 
-        # User Menu -- after user has succesfully logged in
-        while True:
-            user_options = ["Start a session", "Search for songs and playlists", 
-                "Search for artists", "End the session"
-                ]
+        
+        if login_type == "Artist":
+            # Artist Menu 
+            while True:
+                artist_options = ["Add a song", "Find top fans and playlists"]
 
-            user_menu(user_options, username, user_msg)
-            user_msg = None
+                user_menu(artist_options, username, user_msg)
+                user_msg = None 
 
-            user_Input = input("Your Input : ")
-            if user_Input in ['q','Q']: 
-                exit_program()      # close sessions and exit
-            if user_Input in ['l','L']:
-                break               # log out
-            if not safe_Input(user_Input, user_options): # Checks if input is valid.
-                user_msg = "\n Not a valid Input!"
-                continue            # return to start of user menu
+                user_Input = input("Your Input : ")
+                if user_Input in ['q','Q']: 
+                    exit_program()      # close sessions and exit
+                if user_Input in ['l','L']:
+                    break               # log out
+                if not safe_Input(user_Input, artist_options): # Checks if input is valid.
+                    user_msg = "\n Not a valid Input!"
+                    continue            # return to start of user menu
 
-            # User selects: Start Session
-            if user_Input == '1':
-                session = start_session(username)
-                user_msg = "\n Session Started!"
+                # Artist selects : Add a song
+                if user_Input == '1':
+                    song_title = input("\nInput the song title: ")
+                    song_duration = input("\nInput the song duration: ") # should be int
+                    if not song_duration.isdigit():
+                        user_msg = "\n The duration of the song must be a digit!"
+                        continue
 
-            # User selects: End the session
-            if user_Input == '4':
-                # Ensure the user is in a current session
-                if session == None:
-                    user_msg = "\n You are not in a current session!"
-                else:
-                    end_session(username, session)
-                    user_msg = "\n Session Ended!"
-                    session = None
-                    
+                    song_duration = int(song_duration)
+                    if is_song(username, song_title, song_duration): # username is aid - artist id
+                        user_msg = "\n Artist already has a song with this title and duration!"
+                        continue
+                    else:
+                        insert_song(username, song_title, song_duration)
+                        user_msg = "\n Song inserted!"
+                        continue
+
+                    # Implement asking from input for addtional artists
+                    pass
+
+                # Artist selects : Find top fans and playlists
+                if user_Input == '2':
+                    pass
+
+
+
+        if login_type == "User":
+            # User Menu 
+            while True:
+                user_options = ["Start a session", "Search for songs and playlists", 
+                    "Search for artists", "End the session"
+                    ]
+
+                user_menu(user_options, username, user_msg)
+                user_msg = None
+
+                user_Input = input("Your Input : ")
+                if user_Input in ['q','Q']: 
+                    exit_program()      # close sessions and exit
+                if user_Input in ['l','L']:
+                    break               # log out
+                if not safe_Input(user_Input, user_options): # Checks if input is valid.
+                    user_msg = "\n Not a valid Input!"
+                    continue            # return to start of user menu
+
+                # User selects: Start Session
+                if user_Input == '1':
+                    session = start_session(username)
+                    user_msg = "\n Session Started!"
+
+                # User selects: Search for songs and playlists
+                if user_Input == '2':
+                    pass
+
+                # User selects: Search for Artists
+                if user_Input == '3':
+                    pass
+
+                # User selects: End the session
+                if user_Input == '4':
+                    # Ensure the user is in a current session
+                    if session == None:
+                        user_msg = "\n You are not in a current session!"
+                    else:
+                        end_session(username, session)
+                        user_msg = "\n Session Ended!"
+                        session = None
+                        
                    
 
 
