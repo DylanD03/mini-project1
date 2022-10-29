@@ -4,6 +4,7 @@ Mini-Project 1
 """
 
 # Import modules
+from ast import keyword
 from pickle import TRUE
 from database_functions import *
 from getpass import *
@@ -166,6 +167,13 @@ def main():
             if user_Input == '1':
                 session = start_session(username)
                 user_msg = "\n Session Started!"
+
+            # User selects: Search for artists
+            if user_Input == '3':
+                print("Please enter a list of keywords. \n These keywords will be used to find matching artists name or \n songs perfromed by that artist.")
+                print("Please separate your keywords by a comma ','")
+                key_words = input(">>>")
+                artist_search(key_words)
 
             # User selects: End the session
             if user_Input == '4':
