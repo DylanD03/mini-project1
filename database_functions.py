@@ -6,7 +6,7 @@ from urllib.response import addinfo
 
 def connect():
 	# connects to the sqlite database
-	database_name = "./tables.db"
+	database_name = "tables.db"
 	connection = sqlite3.connect(database_name)
 	cursor = connection.cursor()
 	return connection, cursor
@@ -145,44 +145,53 @@ def artist_search(key_words_string):
 
 	# Query database for matching artist names or songs
 
-	# query = ''' WITH Total(aid, written) 
-	# 				as SELECT (artists.aid, COUNT(songs.sid)) 
-	# 				FROM artists, songs, perform
-	# 				WHERE artists.aid = perform.aid
-	# 				AND perform.sid = songs.sid
-	# 				GROUP BY artists.aid
-	# 			WITH MadeBy(aid, title)
-	# 				AS SELECT (artists.aid, songs.title)
-	# 				FROM artists, songs, perform
-	# 				WHERE artists.aid = perform.aid
-	# 				AND perform.sid = songs.sid
-	# 			SELECT artists.aid, name, nationality, written
-	# 			FROM artists, Total, MadeBy
-	# 			WHERE artists.aid = Total.aid
-	# 			AND artists.aid = MadeBy.aid
-	# 			AND (
-	# 			'''
-	# addition = ''
-	# for i in range(len(key_words)):
-	# 	addition += "artists.name LIKE '%" + key_words[i] +"%' OR MadeBY.title LIKE '%" + key_words[i] + "%'" 
-	# 	if i + 1 < len(key_words):
-	# 		addition += '''OR '''
-	# 	else:
-	# 		addition += ''');'''
+	query = ''' DROP VIEW if exists Total;'''
+	cursor.execute(query)
 
-	# query += addition
-
-	query = '''SELECT artists.aid, COUNT(songs.sid)
+	query =	'''	DROP VIEW if exists MadeBy;'''
+	cursor.execute(query)
+	
+	query = '''	CREATE VIEW Total (aid, written)
+					as SELECT artists.aid, COUNT(songs.sid) 
 					FROM artists, songs, perform
 					WHERE artists.aid = perform.aid
-					AND perform.sid = songs.sid'''
-	addition = " AND artists.name LIKE '%" + key_words[0] + "%';" 
-				
-	query += addition				
+					AND perform.sid = songs.sid
+					GROUP BY artists.aid;'''
+	cursor.execute(query)
+
+	query = '''CREATE VIEW MadeBy 
+					AS SELECT artists.aid, songs.title
+					FROM artists, songs, perform
+					WHERE artists.aid = perform.aid
+					AND perform.sid = songs.sid;'''
+	cursor.execute(query)
+
+	query = '''	SELECT DISTINCT artists.aid, name, nationality, written
+				FROM artists, Total, MadeBy
+				WHERE artists.aid = Total.aid
+				AND artists.aid = MadeBy.aid
+				AND (
+				'''
+	
+	addition = ''
+	for i in range(len(key_words)):
+		
+		addition += "LOWER(artists.name) LIKE '%" + key_words[i] +"%' OR LOWER(MadeBY.title) LIKE '%" + key_words[i] + "%'" 
+		#addition += "LOWER(artists.name) LIKE '" + key_words[i].lower() +"%'" 
+		if i + 1 < len(key_words):
+			addition += '''OR '''
+		else:
+			addition += ''');'''
+
+	query += addition
+
 	cursor.execute(query)
 	matches = cursor.fetchall()
 	commit(connection)
-	print(matches)
+	
+	
+	# while True:
+	# 	print(matches)
 
 	# while True:
 	# 	for word in key_words:
