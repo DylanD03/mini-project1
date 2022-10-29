@@ -29,8 +29,24 @@ def user_login(uid,pwd):
 	assert len(user) in [0,1]
 	if len(user) == 0:
 		return None # No user with that combination of uid, pwd exists. Unsuccesful login.
+	else:
+		return uid
 
-	return uid # succesful login.
+def artist_login(aid,pwd):
+	""" returns the artist's id if the login is successful, returns None if login is unsuccessful. """
+	connection, cursor = connect()
+
+	try: 
+		cursor.execute("SELECT * FROM artists WHERE aid = (?) AND pwd = (?)", (aid, pwd))
+	except sqlite3.Error:
+		return None # unsuccesful, maybe user formating error.
+
+	user = cursor.fetchall()
+	assert len(user) in [0,1]
+	if len(user) == 0:
+		return None # No user with that combination of uid, pwd exists. Unsuccesful login.
+
+	return aid # succesful login.
 
 def register_user(uid, name, password):
 	"""
@@ -45,7 +61,7 @@ def register_user(uid, name, password):
 	try:
 		cursor.execute("INSERT INTO users VALUES (?,?,?)", (uid, name, password))
 	except sqlite3.Error:
-		return None # misformatted, uid should be 4 characters.
+		return None 
 
 	commit(connection)
 	return uid
@@ -80,6 +96,63 @@ def is_artist(aid):
 	if len(artist) == 0:
 		return False # artist does not exist
 	return True # artist does exist
+
+def is_song(artist_id, song_title, song_duration):
+	"""
+	Checks if this song already exists.
+	"""
+	connection, cursor = connect()
+
+	query = '''
+	SELECT * FROM artists, perform, songs 
+	WHERE artists.aid = perform.aid AND perform.sid = songs.sid
+	AND artists.aid = (?) AND songs.title = (?) AND songs.duration = (?)
+	'''
+
+	cursor.execute(query, (artist_id, song_title, song_duration))
+	songs = cursor.fetchall()
+	assert len(songs) in [0,1] # should not have multiple songs with the same title and duration by project specifications.
+	commit(connection)
+
+	if len(songs) == 0:
+		return False # song does not exist
+	return True # song does exist
+
+def insert_song(artist_id, song_title, song_duration):
+	"""
+	inserts song into the database assuming it already doesnt exist. 
+	"""
+	connection, cursor = connect()
+
+	cursor.execute("SELECT sid FROM songs")
+	song_ids = cursor.fetchall()
+
+
+	valid = True
+	while valid:
+		new_sid = random.randint(1, 1000)
+
+		# If there are no songs
+		if len(song_ids) == 0:
+			valid = False
+			break
+		
+		# Gather all song ids
+		all_sids = []
+		for sid in song_ids:
+			all_sids.append(sid[0])
+
+		# Ensure that the sid is unique
+		valid = False
+		if new_sid in all_sids:
+			valid = True
+
+	# Add new song with unique sid
+	cursor.execute("INSERT INTO songs VALUES (?,?,?)", (new_sid, song_title, song_duration))
+
+	# Add the song to performs table
+	cursor.execute("INSERT INTO perform VALUES (?,?)", (artist_id, new_sid))
+	commit(connection)
 
 def start_session(uid):
 	"""
