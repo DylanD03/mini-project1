@@ -295,8 +295,8 @@ def song_info(sid):
 	connection, cursor = connect()
 
 	# Gather additional information about the song
-	cursor.execute("SELECT artists.aid, songs.sid, title, duration FROM songs, artists, perform WHERE songs.sid = perform.sid AND perform.aid = artists.aid AND songs.sid = ?;", (int(sid),))
-	song_info = cursor.fetchall()
+	cursor.execute("SELECT artists.name, songs.sid, title, duration FROM songs, artists, perform WHERE songs.sid = perform.sid AND perform.aid = artists.aid AND songs.sid = ?;", (int(sid),))
+	song_info = cursor.fetchone()
 
 	# Gather playlists that contain the song
 	cursor.execute("SELECT playlists.title FROM playlists, plinclude WHERE playlists.pid = plinclude.pid AND plinclude.sid = ?;", (int(sid),))
@@ -304,3 +304,8 @@ def song_info(sid):
 	commit(connection)
 
 	return song_info, playlists
+
+def song_listen(uid, sid):
+	"""
+	"""
+	pass

@@ -5,7 +5,7 @@ Mini-Project 1
 
 # Import modules
 #from curses.ascii import isdigit
-from curses.ascii import isdigit
+#from curses.ascii import isdigit
 from pickle import TRUE
 from pydoc import isdata
 from turtle import pos, position
@@ -132,7 +132,7 @@ def song_actions(songs, uid):
     
     for i in range(len(songs)):
         position = "---" + str(i + 1) + "---\n"
-        details = "Song ID: " + songs[i][0] + "\nTitle: " + songs[i][1] + "\nDuration: " +  str(songs[i][2]) + "\n"
+        details = "Song ID: " + str(songs[i][0]) + "\nTitle: " + songs[i][1] + "\nDuration: " +  str(songs[i][2]) + "\n"
         print(position + details)
 
     # Display user options
@@ -148,9 +148,9 @@ def song_actions(songs, uid):
         response = input(">>>")
         option = response.split(',')
         for i in range(len(option)):
-            option[i] = option[i].strip
-            if option[i].isdigit() == False:
-                option[i].lower()
+            option[i] = option[i].strip()
+            if option[i].isalpha():
+                option[i] = option[i].lower()
 
         # Options for songs actions
         if option[0] == 'b':
@@ -161,15 +161,23 @@ def song_actions(songs, uid):
         elif int(option[0]) <= 0 or int(option[0]) > len(songs):
             print("Song number out of range, please try again.")
         elif option[1] == 'listen':
-            pass
+            if session == None:
+                session = start_session(uid)
+            song_listen(uid, songs[int(option[0] - 1)][0])
         elif option[1] == 'info':
             # Obtain the desired results
-            info, playlist = song_info(songs[int(option) - 1][0])
-
+            info, playlist = song_info(songs[int(option[0]) - 1][0])
             info_print = "\nArtist: " + info[0] + "\nSong ID: " + str(info[1]) + "\nTitle: " + info[2] + "\nDuration: " + str(info[3]) + "\nPlaylists: "
-            
-            
-            print("Artist: ")
+            playlist_print = ""
+            if playlist != []:
+                for i in range(len(playlist)):
+                    playlist_print += playlist[i][0]
+                    if i + 1 < len(playlist):
+                        playlist_print += ", "
+            else:
+                playlist_print = "N/A"
+            info_print += playlist_print
+            print(info_print)
         elif option[i] == 'playlist':
             pass
         else:
