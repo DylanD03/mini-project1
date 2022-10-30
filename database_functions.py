@@ -212,7 +212,7 @@ def artist_search(key_words_string):
 
 	# Data processing - ensure there are no uncessary white spaces
 	for i in range(len(key_words)):
-		key_words[i] = key_words[i].strip()
+		key_words[i] = key_words[i].strip().lower()
 
 	# Query database for matching artist names or songs
 
@@ -245,25 +245,67 @@ def artist_search(key_words_string):
 				'''
 	
 	addition = ''
+	order_by = 'ORDER BY '
+	# CASE WHEN LOWER(artists.name) LIKE '%drake%' THEN 1 ELSE 0 END, CASE WHEN LOWER(MadeBy.title) LIKE '%drake%' THEN 1 ELSE 0 END, CASE WHEN LOWER(MadeBy.title) LIKE '%dance%' THEN 1 ELSE 0 END
+	
 	for i in range(len(key_words)):
 		
 		addition += "LOWER(artists.name) LIKE '%" + key_words[i] +"%' OR LOWER(MadeBY.title) LIKE '%" + key_words[i] + "%'" 
-		#addition += "LOWER(artists.name) LIKE '" + key_words[i].lower() +"%'" 
+		order_by += "CASE WHEN LOWER(artists.name) LIKE '%" + key_words[i] +"%' THEN 1 ELSE 0 END, CASE WHEN LOWER(MadeBY.title) LIKE '%" + key_words[i] + "%' THEN 1 ELSE 0 END" 
 		if i + 1 < len(key_words):
 			addition += '''OR '''
+			order_by += ''', '''
 		else:
-			addition += ''');'''
+			addition += ''') '''
 
+	addition += order_by + ''';'''
 	query += addition
 
 	cursor.execute(query)
 	matches = cursor.fetchall()
 	commit(connection)
+
+	return matches
 	
 	
-	while True:
-		print(matches)
+	# while True:
+	# 	print(matches)
 
 	# while True:
 	# 	for word in key_words:
 	# 		print(word)
+
+def artist_songs(id):
+	"""
+	Obtains and returns all the songs performed by an artist
+	"""
+	connection, cursor = connect()
+
+	# Obtain a list of all the songs performed by the artist
+	cursor.execute("SELECT songs.sid, title, duration FROM songs, artists, perform WHERE songs.sid = perform.sid AND perform.aid = artists.aid AND artists.aid = ?", (id,))
+	all_songs = cursor.fetchall()
+	commit(connection)
+
+	return all_songs
+
+def song_info(sid):
+	"""
+	Prints additional song information based on the input sid
+	"""
+	connection, cursor = connect()
+
+	# Gather additional information about the song
+	cursor.execute("SELECT artists.name, songs.sid, title, duration FROM songs, artists, perform WHERE songs.sid = perform.sid AND perform.aid = artists.aid AND songs.sid = ?;", (int(sid),))
+	song_info = cursor.fetchone()
+
+	# Gather playlists that contain the song
+	cursor.execute("SELECT playlists.title FROM playlists, plinclude WHERE playlists.pid = plinclude.pid AND plinclude.sid = ?;", (int(sid),))
+	playlists = cursor.fetchall()
+	commit(connection)
+
+	return song_info, playlists
+
+def song_listen(uid, sid):
+	"""
+	"""
+	pass
