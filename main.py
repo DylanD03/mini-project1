@@ -224,8 +224,11 @@ def main():
 
                 # User selects: Search for Artists
                 if user_Input == '3':
-                    pass
-
+                    print("Please enter a list of keywords. \n These keywords will be used to find matching artists name or \n songs perfromed by that artist.")
+                    print("Please separate your keywords by a comma ','")
+                    key_words = input(">>>")
+                    artist_search(key_words)
+                    
                 # User selects: End the session
                 if user_Input == '4':
                     # Ensure the user is in a current session

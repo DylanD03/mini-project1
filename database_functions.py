@@ -199,3 +199,71 @@ def end_session(uid, sno):
 	query = '''UPDATE sessions SET end = date() WHERE uid = ? AND sno = ?;'''
 	cursor.execute(query, (uid, sno,))
 	commit(connection)
+
+def artist_search(key_words_string):
+	"""
+	Obtain a list of keywords
+	These keys will be examined alongside artist names and songs
+	"""
+	connection, cursor = connect()
+
+	# Convert string to a list
+	key_words = key_words_string.split(',')
+
+	# Data processing - ensure there are no uncessary white spaces
+	for i in range(len(key_words)):
+		key_words[i] = key_words[i].strip()
+
+	# Query database for matching artist names or songs
+
+	query = ''' DROP VIEW if exists Total;'''
+	cursor.execute(query)
+
+	query =	'''	DROP VIEW if exists MadeBy;'''
+	cursor.execute(query)
+	
+	query = '''	CREATE VIEW Total (aid, written)
+					as SELECT artists.aid, COUNT(songs.sid) 
+					FROM artists, songs, perform
+					WHERE artists.aid = perform.aid
+					AND perform.sid = songs.sid
+					GROUP BY artists.aid;'''
+	cursor.execute(query)
+
+	query = '''CREATE VIEW MadeBy 
+					AS SELECT artists.aid, songs.title
+					FROM artists, songs, perform
+					WHERE artists.aid = perform.aid
+					AND perform.sid = songs.sid;'''
+	cursor.execute(query)
+
+	query = '''	SELECT DISTINCT artists.aid, name, nationality, written
+				FROM artists, Total, MadeBy
+				WHERE artists.aid = Total.aid
+				AND artists.aid = MadeBy.aid
+				AND (
+				'''
+	
+	addition = ''
+	for i in range(len(key_words)):
+		
+		addition += "LOWER(artists.name) LIKE '%" + key_words[i] +"%' OR LOWER(MadeBY.title) LIKE '%" + key_words[i] + "%'" 
+		#addition += "LOWER(artists.name) LIKE '" + key_words[i].lower() +"%'" 
+		if i + 1 < len(key_words):
+			addition += '''OR '''
+		else:
+			addition += ''');'''
+
+	query += addition
+
+	cursor.execute(query)
+	matches = cursor.fetchall()
+	commit(connection)
+	
+	
+	while True:
+		print(matches)
+
+	# while True:
+	# 	for word in key_words:
+	# 		print(word)
