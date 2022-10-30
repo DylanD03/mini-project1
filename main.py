@@ -235,24 +235,54 @@ def main():
 
                 # Artist selects : Add a song
                 if user_Input == '1':
+
                     song_title = input("\nInput the song title: ")
-                    song_duration = input("\nInput the song duration: ") # should be int
-                    if not song_duration.isdigit():
-                        user_msg = "\n The duration of the song must be a digit!"
+                    song_duration = input("\nInput the song duration: ") 
+                    if not song_duration.isdigit(): # stored as an integer in the database
+                        user_msg = "\n The song duration must be an integer!"
                         continue
 
                     song_duration = int(song_duration)
-                    if is_song(username, song_title, song_duration): # username is aid - artist id
+                    if is_song(username, song_title, song_duration): 
+                        # artist already has this song. 
                         user_msg = "\n Artist already has a song with this title and duration!"
-                        continue
+                        continue 
                     else:
-                        insert_song(username, song_title, song_duration)
+                        # is a unique song. Can insert.
+                        sid = insert_song(username, song_title, song_duration)
+
+                        # asking from input for additional artists
+                        user_msg = None
+                        while user_Input not in ['q', 'Q']:
+                            
+                            clear()
+                            print("--------------------------------------")
+                            print("Song Name :", song_title)
+                            print("Song Duration :", song_duration)
+                            print("\nInput the id of any additional artist that performed the song!")
+                            print("Enter 'q' to exit!")
+                            if user_msg is not None:
+                                print(user_msg)
+                            print("--------------------------------------")
+                            user_Input = input('\nYour Input : ')
+
+                            
+                            if user_Input == '' or len(user_Input) > 4:
+                                user_msg = '\nInvalid artist id. id must be a non-empty string with length <= 4. Try again!'
+                                continue
+
+                            if is_artist(user_Input):
+                                if is_perform(user_Input, sid):
+                                    # artist already performs this song
+                                    user_msg = '\nThis artist already performs this song!'
+                                else:
+                                    insert_artist_performs(user_Input, sid) 
+                                    user_msg = '\n'+ user_Input + " now performs this song!"
+
+                            else:
+                                user_msg = '\nThis is not a valid artist id. Try again!'
+
                         user_msg = "\n Song inserted!"
-                        continue
-
-                    # Implement asking from input for addtional artists
-                    pass
-
                 # Artist selects : Find top fans and playlists
                 if user_Input == '2':
                     pass

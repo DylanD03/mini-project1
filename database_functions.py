@@ -121,12 +121,13 @@ def is_song(artist_id, song_title, song_duration):
 def insert_song(artist_id, song_title, song_duration):
 	"""
 	inserts song into the database assuming it already doesnt exist. 
+
+	returns the unique song id, generated when a new song is made sid.
 	"""
 	connection, cursor = connect()
 
 	cursor.execute("SELECT sid FROM songs")
 	song_ids = cursor.fetchall()
-
 
 	valid = True
 	while valid:
@@ -153,6 +154,40 @@ def insert_song(artist_id, song_title, song_duration):
 	# Add the song to performs table
 	cursor.execute("INSERT INTO perform VALUES (?,?)", (artist_id, new_sid))
 	commit(connection)
+
+	return new_sid
+
+def insert_artist_performs(artist_id, song_id):
+	''' Adds the artist and the song they performed to the performs table.'''
+
+	# Cannot have dangling references.
+	assert(is_artist(artist_id))
+
+	connection, cursor = connect()
+
+	cursor.execute("INSERT INTO perform VALUES (?,?)", (artist_id, song_id))
+
+	commit(connection)
+
+def is_perform(artist_id, song_id):
+	"""
+	Checks if this song already exists.
+	"""
+	connection, cursor = connect()
+
+	query = '''
+	SELECT * FROM perform 
+	WHERE aid = (?) AND sid = (?)
+	'''
+	cursor.execute(query, (artist_id, song_id))
+	performs = cursor.fetchall()
+	assert len(performs) in [0,1] # primary key integrity.
+
+	commit(connection)
+
+	if len(performs) == 0:
+		return False # artist does perform this song
+	return True # artist does perform this song
 
 def start_session(uid):
 	"""
