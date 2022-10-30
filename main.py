@@ -4,11 +4,16 @@ Mini-Project 1
 """
 
 # Import modules
+#from curses.ascii import isdigit
+from curses.ascii import isdigit
 from pickle import TRUE
+from pydoc import isdata
+from turtle import pos, position
 from database_functions import *
 from getpass import *
 import os
 DEBUG = True
+session = None
 
 def clear():
     '''
@@ -119,6 +124,58 @@ def process_login(option):
         username = register_user(username, name, pwd) # returns None if unsuccessful. i.e., user with that uid already exists.    
         return "User", username 
 
+def song_actions(songs, uid):
+    """
+    """
+
+    valid = True
+    
+    for i in range(len(songs)):
+        position = "---" + str(i + 1) + "---\n"
+        details = "Song ID: " + songs[i][0] + "\nTitle: " + songs[i][1] + "\nDuration: " +  str(songs[i][2]) + "\n"
+        print(position + details)
+
+    # Display user options
+    while valid:
+        print("------------------------------------")
+        print("Type \'b\' to return to user options.")
+        print("Enter the postion of the song, followed by a comma, then one of the following options:")
+        print("Type \'#, listen\' to listen to the song.")
+        print("Type \'#, info\' to obtain more information about the song.")
+        print("Or ype \'#, playlist\' to add the song to one of your playlists.")
+
+        # Input processing
+        response = input(">>>")
+        option = response.split(',')
+        for i in range(len(option)):
+            option[i] = option[i].strip
+            if option[i].isdigit() == False:
+                option[i].lower()
+
+        # Options for songs actions
+        if option[0] == 'b':
+            valid = False
+            return
+        elif option[0].isdigit() == False:
+            print("Please enter a valid song number.")
+        elif int(option[0]) <= 0 or int(option[0]) > len(songs):
+            print("Song number out of range, please try again.")
+        elif option[1] == 'listen':
+            pass
+        elif option[1] == 'info':
+            # Obtain the desired results
+            info, playlist = song_info(songs[int(option) - 1][0])
+
+            info_print = "\nArtist: " + info[0] + "\nSong ID: " + str(info[1]) + "\nTitle: " + info[2] + "\nDuration: " + str(info[3]) + "\nPlaylists: "
+            
+            
+            print("Artist: ")
+        elif option[i] == 'playlist':
+            pass
+        else:
+            print("Invalid option")
+        
+
 def main():
     
     database = "./tables.db"
@@ -227,7 +284,44 @@ def main():
                     print("Please enter a list of keywords. \n These keywords will be used to find matching artists name or \n songs perfromed by that artist.")
                     print("Please separate your keywords by a comma ','")
                     key_words = input(">>>")
-                    artist_search(key_words)
+                    matches = artist_search(key_words)
+
+                    # Display results on sections of 5
+                    start = 0
+                    end = 5
+                    valid = True
+                    while valid:
+                        for i in range(start, end):
+                            if i < len(matches):
+                                position = "---" + str(i + 1) + "---\n"
+                                details = "ID: " + matches[i][0] + "\nName: " + matches[i][1] + "\nNationality: " +  matches[i][2] + "\nNumber of Songs: "
+                                if matches[i][3] == None:
+                                    details += "None\n"
+                                else:
+                                    details += str(matches[i][3]) + "\n"
+                                print(position + details)
+
+                        print("------------------------------------")
+                        print("Type \'n\' to display the next page of songs.")
+                        print("Select a number to display all the artist's songs")
+                        print("Or ype \'q\' to quit.")
+
+                        option = input(">>>")
+
+                        if option.lower() == 'n':
+                            if end < len(matches):
+                                start += 5
+                                end += 5
+                            else:
+                                print("All results have been displayed!")
+                        elif option.isdigit() and int(option) >= 1 and int(option) <= len(matches):
+                            songs = artist_songs(matches[int(option) - 1][0])
+                            song_actions(songs, username)
+                        elif option.lower() == 'q':
+                            valid = False
+                            break
+                        else:
+                            print("Invalid Option")
                     
                 # User selects: End the session
                 if user_Input == '4':
