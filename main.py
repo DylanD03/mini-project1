@@ -13,6 +13,7 @@ from database_functions import *
 from getpass import *
 import os
 DEBUG = True
+DATABASE_PATH = "./tables.db"
 session = None
 
 def clear():
@@ -186,8 +187,7 @@ def song_actions(songs, uid):
 
 def main():
     
-    database = "./tables.db"
-    assert(os.path.exists(database)) 
+    assert(os.path.exists(DATABASE_PATH)) 
 
     login_msg = None
     # Log in menu
@@ -283,11 +283,25 @@ def main():
                                 user_msg = '\nThis is not a valid artist id. Try again!'
 
                         user_msg = "\n Song inserted!"
+
                 # Artist selects : Find top fans and playlists
                 if user_Input == '2':
-                    pass
+                    top_fans = top3_users(username) # top 3 fans of the artist that is logged in.
+                    top_playlists = top3_playlists(username) 
 
+                    user_msg = "\n Your top 3 fans are: "
 
+                    for i in range(len(top_fans)):
+                        user_msg += "\n "
+                        user_msg += str(3-i) + ": " + top_fans[i][0]
+
+                    user_msg += "\n\n Your top 3 playlists are: "
+
+                    for i in range(len(top_playlists)):
+                        user_msg += "\n " + str(3-i) + ": "
+                        user_msg += top_playlists[i][0] + " Made by, " + top_playlists[i][1] 
+
+                    
 
         if login_type == "User":
             # User Menu 

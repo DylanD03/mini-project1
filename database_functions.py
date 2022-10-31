@@ -340,6 +340,63 @@ def song_info(sid):
 
 	return song_info, playlists
 
+def top3_users(artist_id):
+	"""
+	Artist action #2
+	Obtains and returns all the top 3 fans of the artist
+	"""
+	connection, cursor = connect()
+
+	query = '''
+			SELECT u1.name
+			FROM users u1, listen l1, songs s1, perform p1, artists a1
+			WHERE u1.uid = l1.uid AND l1.sid = s1.sid AND s1.sid = p1.sid AND p1.aid = a1.aid
+			AND a1.aid = (?)
+			GROUP BY l1.uid
+			ORDER BY SUM(l1.cnt * s1.duration) DESC
+			LIMIT 3
+
+	'''
+
+	cursor.execute(query,(artist_id,))
+	top3_fans = cursor.fetchall()
+	commit(connection)
+
+	return top3_fans
+
+
+def top3_playlists(artist_id):
+	'''
+	Artist action #2
+	obtains and returns the top 3 playlist that include the largest number of the artist's songs.
+	'''
+	connection, cursor = connect()
+
+	query = '''
+			SELECT p1.title, u1.name
+			FROM users u1, playlists p1, plinclude incl1, songs s1, perform perf1, artists a1
+			WHERE u1.uid = p1.uid AND p1.pid = incl1.pid AND incl1.sid = s1.sid
+			AND s1.sid = perf1.sid AND perf1.aid = a1.aid
+			AND a1.aid = (?)
+			GROUP BY p1.pid
+			ORDER BY COUNT(s1.sid) DESC
+			LIMIT 3
+
+	'''
+
+	cursor.execute(query,(artist_id,))
+	top3_playlists = cursor.fetchall()
+	commit(connection)
+
+	return top3_playlists
+
+
+	cursor.execute(query,(artist_id,))
+	top3_fans = cursor.fetchall()
+	commit(connection)
+
+	return top3_fans
+
 def song_listen(uid, sid):
 	"""
 	"""
