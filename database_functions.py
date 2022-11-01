@@ -118,6 +118,21 @@ def is_song(artist_id, song_title, song_duration):
 		return False # song does not exist
 	return True # song does exist
 
+def is_playlist(pid):
+	"""
+	Checks if a playlist with pid already exists in the database.
+	"""
+	connection, cursor = connect()
+
+	cursor.execute("SELECT * FROM playlists WHERE pid = (?)", (pid,))
+	playlist = cursor.fetchall()
+	assert len(playlist) in [0,1] # cannot have multiple playlists with the same pid - primary key
+	commit(connection)
+
+	if len(playlist) == 0:
+		return False # playlist does not exist
+	return True # playlist does exist
+
 def insert_song(artist_id, song_title, song_duration):
 	"""
 	inserts song into the database assuming it already doesnt exist. 
@@ -401,3 +416,62 @@ def song_listen(uid, sid):
 	"""
 	"""
 	pass
+
+def create_playlist(title, uid, first_song):
+	"""
+	creates playlist row and plinclude row with the given title, uid, first song
+	"""
+
+	new_pid = random.randint(1, 1000)
+	while is_playlist(new_pid):
+		new_pid = random.randint(1, 1000)
+	
+	connection, cursor = connect()
+
+	playlist_query = '''INSERT INTO playlists VALUES (?, ?, ?);'''
+	try:
+		cursor.execute(playlist_query, (new_pid, title, uid,))
+	except sqlite3.Error:
+		return None 
+
+	plinclude_query = '''INSERT INTO plinclude VALUES (?, ?, ?);'''
+	try:
+		cursor.execute(plinclude_query, (new_pid, first_song, 0,))
+	except sqlite3.Error:
+		return None 
+
+	commit(connection)
+
+	return new_pid
+
+def get_playlists(uid):
+	"""
+	Gets the title of all playlist belong to the given uid.
+	"""
+	connection, cursor = connect()
+
+	query = '''SELECT title, pid FROM playlists WHERE uid = ?;'''
+	cursor.execute(query, (uid,))
+	playlists = cursor.fetchall()
+	commit(connection)
+
+	return playlists
+
+def add_to_playlist(pid, sid):
+	"""
+	Adds song to playlist (aka adds a row to plinclude table) with given playlist and song id
+	"""
+	
+	connection, cursor = connect()
+
+	max_order_query = '''SELECT MAX(sorder) FROM plinclude WHERE pid = ?''' 
+	cursor.execute(max_order_query, (pid,))
+	max = cursor.fetchone()
+
+	plinclude_query = '''INSERT INTO plinclude VALUES (?, ?, ?);'''
+	try:
+		cursor.execute(plinclude_query, (pid, sid, (max[0]+1),))
+	except sqlite3.Error:
+		return None 
+
+	commit(connection)
