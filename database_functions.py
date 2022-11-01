@@ -344,3 +344,27 @@ def song_listen(uid, sid):
 	"""
 	"""
 	pass
+
+def find_next_active_session(uid):
+	"""
+	Find one active session (that does not have an end date) for specified user uid
+	"""
+	connection, cursor = connect()
+
+	query = '''SELECT uid, sno FROM sessions WHERE uid = ? AND end IS NULL;'''
+	cursor.execute(query, (uid,))
+	next_session = cursor.fetchone()
+	commit(connection)
+	return next_session
+
+def test_query(uid):
+	"""
+	Find one active session (that does not have an end date) for specified user uid
+	"""
+	connection, cursor = connect()
+
+	query = '''SELECT uid, sno FROM sessions WHERE uid = ? AND end IS NULL;'''
+	cursor.execute(query, (uid,))
+	next_session = cursor.fetchone()
+	commit(connection)
+	return next_session

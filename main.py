@@ -6,6 +6,7 @@ Mini-Project 1
 # Import modules
 #from curses.ascii import isdigit
 #from curses.ascii import isdigit
+from cgi import test
 from pickle import TRUE
 from pydoc import isdata
 from turtle import pos, position
@@ -127,6 +128,7 @@ def process_login(option):
 def song_actions(songs, uid):
     """
     """
+    global session
 
     valid = True
     
@@ -183,11 +185,30 @@ def song_actions(songs, uid):
         else:
             print("Invalid option")
         
+def end_current_session(username):
+    global session
+    uinput = ''
+    while uinput != '1':
+        print(session)
+        uinput = input("Enter '1' to exit loop: ")
+    end_session(username, session)
+    uinput = ''
+    while uinput != '1':
+        print(session)
+        uinput = input("Enter '1' to exit loop: ")
+    session = ((find_next_active_session(username))[1])
+    uinput = ''
+    while uinput != '1':
+        print(session)
+        uinput = input("Enter '1' to exit loop: ")
+    return "\n Session Ended!"
 
 def main():
     
     database = "./tables.db"
     assert(os.path.exists(database)) 
+
+    global session
 
     login_msg = None
     # Log in menu
@@ -202,6 +223,9 @@ def main():
 
         user_Input = input(" Your Input: ") # TODO: exception handling (read from file?). Probably dont need.
         if user_Input in ['q','Q']: 
+            # Close all active sessions
+            while session != None:
+                end_current_session(username) 
             exit_program()          # close sessions and exit
         if not safe_Input(user_Input, login_options): # Checks if input is valid.
             user_msg = "\n Invalid input, try again!"
@@ -226,6 +250,9 @@ def main():
 
                 user_Input = input("Your Input : ")
                 if user_Input in ['q','Q']: 
+                    # Close all active sessions
+                    while session != None:
+                        end_current_session(username) 
                     exit_program()      # close sessions and exit
                 if user_Input in ['l','L']:
                     break               # log out
@@ -301,6 +328,9 @@ def main():
 
                 user_Input = input("Your Input : ")
                 if user_Input in ['q','Q']: 
+                    # Close all active sessions
+                    while session != None:
+                        end_current_session(username) 
                     exit_program()      # close sessions and exit
                 if user_Input in ['l','L']:
                     break               # log out
@@ -315,6 +345,10 @@ def main():
 
                 # User selects: Search for songs and playlists
                 if user_Input == '2':
+                    uinput = ''
+                    while uinput != '1':
+                        print((test_query(username))[1])
+                        uinput = input("Enter '1' to exit loop: ")
                     pass
 
                 # User selects: Search for Artists
@@ -367,9 +401,10 @@ def main():
                     if session == None:
                         user_msg = "\n You are not in a current session!"
                     else:
-                        end_session(username, session)
-                        user_msg = "\n Session Ended!"
-                        session = None
+                        user_msg = end_current_session(username)
+                        # end_session(username, session)
+                        # user_msg = "\n Session Ended!"
+                        # session = None
                         
                    
 
