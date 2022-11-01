@@ -6,6 +6,7 @@ Mini-Project 1
 # Import modules
 #from curses.ascii import isdigit
 #from curses.ascii import isdigit
+from http.client import TOO_MANY_REQUESTS
 from pickle import TRUE
 from pydoc import isdata
 from turtle import pos, position
@@ -143,7 +144,7 @@ def song_actions(songs, uid):
         print("Enter the postion of the song, followed by a comma, then one of the following options:")
         print("Type \'#, listen\' to listen to the song.")
         print("Type \'#, info\' to obtain more information about the song.")
-        print("Or ype \'#, playlist\' to add the song to one of your playlists.")
+        print("Or Type \'#, playlist\' to add the song to one of your playlists.")
 
         # Input processing
         response = input(">>>")
@@ -180,7 +181,23 @@ def song_actions(songs, uid):
             info_print += playlist_print
             print(info_print)
         elif option[i] == 'playlist':
-            pass
+            print("\nExisting Playlists:\n")
+            playlists = get_playlists(uid)
+            for i in range(len(playlists)):
+                print(str(playlists[i][1]) + " | " + playlists[i][0])
+
+            pl_input = input("Enter a playlist id to add to or type 'new' to create a new playlist.")
+            goodInput = False
+            while goodInput != True:
+                if (pl_input == 'new'):
+                    title = input("Enter a playlist title: ")
+                    create_playlist(title, uid, songs[int(option[0]) - 1][0])
+                    goodInput = True
+                else:
+                    if is_playlist(pl_input):
+                        add_to_playlist(pl_input, (songs[int(option[0]) - 1][0]))
+                        print("Song added!")
+                        goodInput = True
         else:
             print("Invalid option")
         
