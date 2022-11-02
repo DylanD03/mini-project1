@@ -26,7 +26,7 @@ def clear():
 
 def exit_program():
     # close all sessions then exit the program.
-    close_all_sessions() # FIX: need to implement "close all sessions" part # defined in database_functions.py file
+    close_all_sessions() 
     exit()
 
 def login_menu(login_options, output):
@@ -100,7 +100,9 @@ def process_login(option):
     username = None
     if option == "User/Artist login":
         username = input("\nInput your Username: ")
-        pwd = getpass(prompt='\nInput your password: ') 
+        pwd = getpass(prompt='\nInput your password: ')
+        if username.strip() == "" or pwd.strip() == "":
+            return None, None # cannot be empty string 
 
         if is_user(username) and is_artist(username): # username is stored in both the users and artists table
             choice = input("\nInput \'1\' to log in as a user, or Input \'2\' to log in as an artist.\n\nYour Input : ")
@@ -228,7 +230,7 @@ def main():
         login_type, username = process_login(login_options[int(user_Input)-1]) # User input is 1-indexed (design choice) while python arrays are 0-indexed.
         
         if username is None: 
-            login_msg = "\n Incorrect username or password, try again!"
+            login_msg = "\n Invalid username or password, try again!"
             continue    # restart the login screen.
         
 
