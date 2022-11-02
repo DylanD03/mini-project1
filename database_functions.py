@@ -14,7 +14,19 @@ def commit(connection):
 	connection.close()
 
 def close_all_sessions(): 
-	pass # TODO : close sessions by setting all NULL values in sessions.end to current date/time
+
+	connection, cursor = connect()
+
+	query = '''
+	UPDATE sessions
+		SET end = DATE('now')
+	WHERE 
+		end IS NULL;
+	'''
+	cursor.execute(query)
+	commit(connection)
+
+
 
 def user_login(uid,pwd):
 	""" returns user if succesful login, None if unsuccessful. """
