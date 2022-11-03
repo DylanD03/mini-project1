@@ -597,3 +597,23 @@ def song_playlist_search(key_words_string):
 
 	return matches
 	
+def is_matching_song(song):
+	"""
+	Determine if song exists in songs table
+	"""
+
+	connection, cursor = connect()
+
+	query = '''
+	SELECT * FROM songs 
+	WHERE songs.sid = (?) AND songs.title = (?) AND songs.duration = (?)
+	'''
+
+	cursor.execute(query, (song[0], song[1], song[2]))
+	songs = cursor.fetchall()
+	assert len(songs) in [0,1] # should not have multiple songs with the same title and duration by project specifications.
+	commit(connection)
+
+	if len(songs) == 0:
+		return False # song does not exist
+	return True # song does exist
