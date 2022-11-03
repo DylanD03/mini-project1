@@ -132,6 +132,7 @@ def song_actions(songs, uid):
     """
     """
 
+    global session
     valid = True
     
     for i in range(len(songs)):
@@ -167,7 +168,14 @@ def song_actions(songs, uid):
         elif option[1] == 'listen':
             if session == None:
                 session = start_session(uid)
-            song_listen(uid, songs[int(option[0] - 1)][0])
+                print("\n Session Started!\n")
+
+            num_listens = listened_before(uid, session, songs[int(option[0]) - 1][0])
+            if (len(num_listens) == 0):
+                add_song_listen(uid, session, songs[int(option[0]) - 1][0])
+            else:
+                increment_song_listen(uid, session, songs[int(option[0]) - 1][0], num_listens[0][0])
+            
         elif option[1] == 'info':
             # Obtain the desired results
             info, playlist = song_info(songs[int(option[0]) - 1][0])
@@ -207,6 +215,7 @@ def song_actions(songs, uid):
 def main():
 
     user_msg = None
+    global session
 
     # Log in menu
     while True:
