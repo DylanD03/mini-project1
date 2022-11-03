@@ -364,7 +364,12 @@ def main():
 
                 # User selects: Search for songs and playlists
                 if user_Input == '2':
-                    pass
+                    print("Please enter a list of keywords. \n These keywords will be used to find matching song and playlist titles.")
+                    print("Please separate your keywords by a comma ','")
+                    key_words = input(">>>")
+                    matches = song_playlist_search(key_words)
+                    while True:
+                        print(matches)
 
                 # User selects: Search for Artists
                 if user_Input == '3':
