@@ -12,9 +12,9 @@ from pydoc import isdata
 from turtle import pos, position
 from database_functions import *
 from getpass import *
+import sys
 import os
 DEBUG = True
-DATABASE_PATH = "./tables.db"
 session = None
 
 def clear():
@@ -29,7 +29,7 @@ def exit_program():
     close_all_sessions() 
     exit()
 
-def login_menu(login_options, output):
+def print_login_menu(login_options, output):
     """
     prints login menu to the terminal
 
@@ -48,7 +48,7 @@ def login_menu(login_options, output):
         print(output)
     print("--------------------------------------")
 
-def user_menu(user_options, user = None, output = None):
+def print_user_menu(user_options, user = None, output = None):
     """
     prints user menu to the terminal
 
@@ -71,7 +71,7 @@ def user_menu(user_options, user = None, output = None):
         print(output)
     print("--------------------------------------")
 
-def safe_Input(user_Input, options):
+def safe_input(user_Input, options):
     """
     Checks - String is not empty, in the range of our options,
 
@@ -106,7 +106,7 @@ def process_login(option):
 
         if is_user(username) and is_artist(username): # username is stored in both the users and artists table
             choice = input("\nInput \'1\' to log in as a user, or Input \'2\' to log in as an artist.\n\nYour Input : ")
-            if not safe_Input(choice, [1,2]):
+            if not safe_input(choice, [1,2]):
                 return None, None # invalid input
             if choice == '1':
                 username = user_login(username, pwd)
@@ -205,50 +205,57 @@ def song_actions(songs, uid):
         
 
 def main():
-    
-    assert(os.path.exists(DATABASE_PATH)) 
 
-    login_msg = None
+    user_msg = None
+
     # Log in menu
     while True:
-        user_msg = None
-        username = None
-        session = None
 
+        # Display the login screen
         login_options = ["User/Artist login", "Register User"]
-        login_menu(login_options, login_msg)
+        print_login_menu(login_options, user_msg)
         user_msg = None
 
-        user_Input = input(" Your Input: ") # TODO: exception handling (read from file?). Probably dont need.
+        # Process user input
+        user_Input = input(" Your Input: ") 
         if user_Input in ['q','Q']: 
-            exit_program()          # close sessions and exit
-        if not safe_Input(user_Input, login_options): # Checks if input is valid.
+            exit_program()  # close sessions and exit
+
+        # Checks if input is valid.
+        if not safe_input(user_Input, login_options): 
             user_msg = "\n Invalid input, try again!"
             continue    # restart the login screen     
 
-        login_type = None
+        # Process user/artist login
+        login_type = None # either 'user' or 'artist'
+        username = None
+        session = None
         login_type, username = process_login(login_options[int(user_Input)-1]) # User input is 1-indexed (design choice) while python arrays are 0-indexed.
         
         if username is None: 
+
             login_msg = "\n Invalid username or password, try again!"
             continue    # restart the login screen.
         
 
-        
+        # if a valid username/password is entered, we begin the corresponding artist or user menu.
         if login_type == "Artist":
+
             # Artist Menu 
             while True:
-                artist_options = ["Add a song", "Find top fans and playlists"]
 
-                user_menu(artist_options, username, user_msg)
+                # Printing out artist menu
+                artist_options = ["Add a song", "Find top fans and playlists"]
+                print_user_menu(artist_options, username, user_msg)
                 user_msg = None 
 
+                # 
                 user_Input = input("Your Input : ")
                 if user_Input in ['q','Q']: 
                     exit_program()      # close sessions and exit
                 if user_Input in ['l','L']:
                     break               # log out
-                if not safe_Input(user_Input, artist_options): # Checks if input is valid.
+                if not safe_input(user_Input, artist_options): # Checks if input is valid.
                     user_msg = "\n Not a valid Input!"
                     continue            # return to start of user menu
 
@@ -322,14 +329,14 @@ def main():
 
                     
 
-        if login_type == "User":
+        elif login_type == "User":
             # User Menu 
             while True:
                 user_options = ["Start a session", "Search for songs and playlists", 
                     "Search for artists", "End the session"
                     ]
 
-                user_menu(user_options, username, user_msg)
+                print_user_menu(user_options, username, user_msg)
                 user_msg = None
 
                 user_Input = input("Your Input : ")
@@ -337,7 +344,7 @@ def main():
                     exit_program()      # close sessions and exit
                 if user_Input in ['l','L']:
                     break               # log out
-                if not safe_Input(user_Input, user_options): # Checks if input is valid.
+                if not safe_input(user_Input, user_options): # Checks if input is valid.
                     user_msg = "\n Not a valid Input!"
                     continue            # return to start of user menu
 
