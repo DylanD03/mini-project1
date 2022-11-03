@@ -408,7 +408,9 @@ def main():
                         elif option.isdigit() and int(option) >= 1 and int(option) <= len(matches):
                             # If option is a song
                             if is_matching_song(matches[int(option) - 1]):
-                                pass
+                                new_song = []
+                                new_song.append(matches[int(option) - 1])
+                                song_actions(new_song, username)
                             # If option is a playlist
                             else: 
                                 songs = playlist_songs(matches[int(option) - 1])
