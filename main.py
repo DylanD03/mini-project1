@@ -364,7 +364,64 @@ def main():
 
                 # User selects: Search for songs and playlists
                 if user_Input == '2':
-                    pass
+                    print("Please enter a list of keywords. \n These keywords will be used to find matching song and playlist titles.")
+                    print("Please separate your keywords by a comma ','")
+                    key_words = input(">>>")
+                    matches = song_playlist_search(key_words)
+                    
+                    # Display results on sections of 5
+                    start = 0
+                    end = 5
+                    valid = True
+                    while valid:
+                        for i in range(start, end):
+                            if i < len(matches):
+                                position = "---" + str(i + 1) + "---\n"
+
+                                # Determine if the entry is a song or playlist
+                                if is_matching_song(matches[i]):
+                                    tag = ">>SONG\n"
+                                else:
+                                    tag = ">>PLAYLIST\n"
+                                details = "ID: " + str(matches[i][0]) + "\nTitle: " + matches[i][1] + "\nDuration: " 
+                                if matches[i][2] == None:
+                                    details += "None\n"
+                                else:
+                                    details += str(matches[i][2]) + "\n"
+                                print(position + tag+ details)
+
+                        print("------------------------------------")
+                        print("Type \'n\' to display the next page of songs.")
+                        print("Select a playlist to display all of its songs.")
+                        print("Or select a song to either listen to it, learn more about it, or add to a playlist.")
+                        print("Or ype \'q\' to quit.")
+
+                        option = input(">>>")
+
+                        # Display next page of resutls
+                        if option.lower() == 'n':
+                            if end < len(matches):
+                                start += 5
+                                end += 5
+                            else:
+                                print("All results have been displayed!")
+                        elif option.isdigit() and int(option) >= 1 and int(option) <= len(matches):
+                            # If option is a song
+                            if is_matching_song(matches[int(option) - 1]):
+                                new_song = []
+                                new_song.append(matches[int(option) - 1])
+                                song_actions(new_song, username)
+                            # If option is a playlist
+                            else: 
+                                songs = playlist_songs(matches[int(option) - 1])
+                                print("LENGTH: " + str(len(songs)))
+                                song_actions(songs, username)
+                        elif option.lower() == 'q':
+                            valid = False
+                            break
+                        else:
+                            print("Invalid Option")
+
 
                 # User selects: Search for Artists
                 if user_Input == '3':

@@ -520,3 +520,113 @@ def add_to_playlist(pid, sid):
 		return None 
 
 	commit(connection)
+
+def song_playlist_search(key_words_string):
+	"""
+	Obtain a list of keywords
+	These keys will be examined alongside song and playlist tiles
+	"""
+	connection, cursor = connect()
+
+	# Convert string to a list
+	key_words = key_words_string.split(',')
+
+	# Data processing - ensure there are no uncessary white spaces
+	for i in range(len(key_words)):
+		key_words[i] = key_words[i].strip().lower()
+
+	# Create query line to for matching
+	addition_songs = ""
+	addition_playlist = ""
+	order_by = ""
+	for i in range(len(key_words)):
+		addition_songs += "LOWER(songs.title) LIKE '%" + key_words[i] +"%'" 
+		addition_playlist += "LOWER(playlists.title) LIKE '%" + key_words[i] +"%'" 
+		#order_by += "CASE WHEN LOWER(matchSongs.title) LIKE '%" + key_words[i] +"%' THEN 1 ELSE 0 END, CASE WHEN LOWER(matchPlaylists.title) LIKE '%" + key_words[i] + "%' THEN 1 ELSE 0 END" 
+		order_by += "CASE WHEN LOWER(name) LIKE '%" + key_words[i] +"%' THEN 1 ELSE 0 END" 
+
+		if i + 1 < len(key_words):
+			addition_songs += '''OR '''
+			addition_playlist += '''OR '''
+			order_by += ''', '''
+		else:
+			addition_songs += ''');'''
+			addition_playlist += ''') GROUP BY playlists.pid;'''
+			order_by += ''';'''
+
+
+	# Create a new table that 
+	query = ''' DROP TABLE if exists songsAndPlaylists;'''
+	cursor.execute(query)
+
+	# Create views
+	create_table  = '''CREATE TABLE songsAndPlaylists(
+						id INTEGER,
+						name TEXT,
+						duration INTEGER); '''
+				
+	cursor.execute(create_table)
+
+	# Gather all the matching songs
+	get_songs = '''INSERT INTO songsAndPlaylists SELECT
+					songs.sid, songs.title, songs.duration
+					FROM songs
+					WHERE ('''
+	get_songs += addition_songs
+	cursor.execute(get_songs)
+
+	# Gather all the matching playlists 
+	get_playlists = '''INSERT INTO songsAndPlaylists SELECT
+					playlists.pid, playlists.title, SUM(songs.duration)
+					FROM songs, playlists, plinclude
+					WHERE playlists.pid = plinclude.pid
+					AND plinclude.sid = songs.sid
+					AND ('''
+					
+	get_playlists += addition_playlist
+	cursor.execute(get_playlists)
+
+	# Gather and order all results
+	query = '''SELECT * FROM songsAndPlaylists ORDER BY '''
+	query += order_by
+	cursor.execute(query)
+
+	# Obtain and return results
+	matches = cursor.fetchall()
+	commit(connection)
+
+	return matches
+	
+def is_matching_song(song):
+	"""
+	Determine if song exists in songs table
+	"""
+
+	connection, cursor = connect()
+
+	query = '''
+	SELECT * FROM songs 
+	WHERE songs.sid = (?) AND songs.title = (?) AND songs.duration = (?)
+	'''
+
+	cursor.execute(query, (song[0], song[1], song[2]))
+	songs = cursor.fetchall()
+	assert len(songs) in [0,1] # should not have multiple songs with the same title and duration by project specifications.
+	commit(connection)
+
+	if len(songs) == 0:
+		return False # song does not exist
+	return True # song does exist
+
+def playlist_songs(playlist):
+	"""
+	Obtains and returns all the songs in a playlist
+	"""
+	connection, cursor = connect()
+
+	# Obtain a list of all the songs performed by the artist
+	cursor.execute("SELECT songs.sid, songs.title, songs.duration FROM songs, playlists, plinclude WHERE songs.sid = plinclude.sid AND playlists.pid = plinclude.pid AND playlists.pid = (?) AND playlists.title = (?)", (playlist[0], playlist[1],))
+	all_songs = cursor.fetchall()
+	commit(connection)
+
+	return all_songs
