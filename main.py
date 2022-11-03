@@ -234,7 +234,7 @@ def main():
         
         if username is None: 
 
-            login_msg = "\n Invalid username or password, try again!"
+            user_msg = "\n Invalid username or password, try again!"
             continue    # restart the login screen.
         
 
