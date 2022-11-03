@@ -4,8 +4,7 @@ import random
 import sys
 def connect():
 	# connects to the sqlite database
-	database_name = "tables.db"
-	# database_name = sys.argv[1] # database name is not known beforehand. Can't hardcode
+	database_name = sys.argv[1] # database name is not known beforehand. Can't hardcode
 	connection = sqlite3.connect(database_name)
 	cursor = connection.cursor()
 	return connection, cursor
