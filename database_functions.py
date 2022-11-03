@@ -617,3 +617,16 @@ def is_matching_song(song):
 	if len(songs) == 0:
 		return False # song does not exist
 	return True # song does exist
+
+def playlist_songs(playlist):
+	"""
+	Obtains and returns all the songs in a playlist
+	"""
+	connection, cursor = connect()
+
+	# Obtain a list of all the songs performed by the artist
+	cursor.execute("SELECT songs.sid, songs.title, songs.duration FROM songs, playlists, plinclude WHERE songs.sid = plinclude.sid AND playlists.pid = plinclude.pid AND playlists.pid = (?) AND playlists.title = (?)", (playlist[0], playlist[1],))
+	all_songs = cursor.fetchall()
+	commit(connection)
+
+	return all_songs

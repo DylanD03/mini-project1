@@ -383,7 +383,7 @@ def main():
                                     tag = ">>SONG\n"
                                 else:
                                     tag = ">>PLAYLIST\n"
-                                details = "ID: " + str(matches[i][0]) + "\nTitle: " + matches[i][1] + "\Duration: " 
+                                details = "ID: " + str(matches[i][0]) + "\nTitle: " + matches[i][1] + "\nDuration: " 
                                 if matches[i][2] == None:
                                     details += "None\n"
                                 else:
@@ -406,8 +406,14 @@ def main():
                             else:
                                 print("All results have been displayed!")
                         elif option.isdigit() and int(option) >= 1 and int(option) <= len(matches):
-                            songs = artist_songs(matches[int(option) - 1][0])
-                            song_actions(songs, username)
+                            # If option is a song
+                            if is_matching_song(matches[int(option) - 1]):
+                                pass
+                            # If option is a playlist
+                            else: 
+                                songs = playlist_songs(matches[int(option) - 1])
+                                print("LENGTH: " + str(len(songs)))
+                                song_actions(songs, username)
                         elif option.lower() == 'q':
                             valid = False
                             break
