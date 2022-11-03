@@ -6,6 +6,7 @@ Mini-Project 1
 # Import modules
 #from curses.ascii import isdigit
 #from curses.ascii import isdigit
+from http.client import TOO_MANY_REQUESTS
 from pickle import TRUE
 from pydoc import isdata
 from turtle import pos, position
@@ -25,7 +26,7 @@ def clear():
 
 def exit_program():
     # close all sessions then exit the program.
-    close_all_sessions() # FIX: need to implement "close all sessions" part # defined in database_functions.py file
+    close_all_sessions() 
     exit()
 
 def print_login_menu(login_options, output):
@@ -99,7 +100,9 @@ def process_login(option):
     username = None
     if option == "User/Artist login":
         username = input("\nInput your Username: ")
-        pwd = getpass(prompt='\nInput your password: ') 
+        pwd = getpass(prompt='\nInput your password: ')
+        if username.strip() == "" or pwd.strip() == "":
+            return None, None # cannot be empty string 
 
         if is_user(username) and is_artist(username): # username is stored in both the users and artists table
             choice = input("\nInput \'1\' to log in as a user, or Input \'2\' to log in as an artist.\n\nYour Input : ")
@@ -143,7 +146,7 @@ def song_actions(songs, uid):
         print("Enter the postion of the song, followed by a comma, then one of the following options:")
         print("Type \'#, listen\' to listen to the song.")
         print("Type \'#, info\' to obtain more information about the song.")
-        print("Or ype \'#, playlist\' to add the song to one of your playlists.")
+        print("Or Type \'#, playlist\' to add the song to one of your playlists.")
 
         # Input processing
         response = input(">>>")
@@ -180,7 +183,23 @@ def song_actions(songs, uid):
             info_print += playlist_print
             print(info_print)
         elif option[i] == 'playlist':
-            pass
+            print("\nExisting Playlists:\n")
+            playlists = get_playlists(uid)
+            for i in range(len(playlists)):
+                print(str(playlists[i][1]) + " | " + playlists[i][0])
+
+            pl_input = input("Enter a playlist id to add to or type 'new' to create a new playlist.")
+            goodInput = False
+            while goodInput != True:
+                if (pl_input == 'new'):
+                    title = input("Enter a playlist title: ")
+                    create_playlist(title, uid, songs[int(option[0]) - 1][0])
+                    goodInput = True
+                else:
+                    if is_playlist(pl_input):
+                        add_to_playlist(pl_input, (songs[int(option[0]) - 1][0]))
+                        print("Song added!")
+                        goodInput = True
         else:
             print("Invalid option")
         
@@ -214,7 +233,8 @@ def main():
         login_type, username = process_login(login_options[int(user_Input)-1]) # User input is 1-indexed (design choice) while python arrays are 0-indexed.
         
         if username is None: 
-            user_msg = "\n Invalid username or password, try again!"
+
+            login_msg = "\n Invalid username or password, try again!"
             continue    # restart the login screen.
         
 
