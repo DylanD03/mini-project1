@@ -423,10 +423,44 @@ def top3_playlists(artist_id):
 
 	return top3_fans
 
-def song_listen(uid, sid):
+def increment_song_listen(uid, sno, sid, cnt):
 	"""
+	Increment the cnt of an existing row in listen table by 1
+	Updates the cnt to (cnt+1)
 	"""
-	pass
+	connection, cursor = connect()
+
+	query = '''UPDATE listen SET cnt = ? WHERE uid = ? AND sno = ? AND sid = ?;'''
+	cursor.execute(query, ((cnt+1), uid, sno, sid))
+	commit(connection)
+
+def add_song_listen(uid, sno, sid):
+	"""
+	Adds a row to the listen table with the provided uid, sno, sid. Set cnt to 1
+	"""
+	
+	connection, cursor = connect()
+
+	query = '''INSERT INTO listen VALUES (?, ?, ?, 1);'''
+	try:
+		cursor.execute(query, (uid, sno, sid,))
+	except sqlite3.Error:
+		return None 
+
+	commit(connection)
+
+def listened_before(uid, sno, sid):
+	"""
+	Gets the count of rows in listen table that match uid, sno, and sid provided
+	"""
+	connection, cursor = connect()
+
+	query = '''SELECT cnt FROM listen WHERE uid = ? AND sno = ? AND sid = ?;'''
+	cursor.execute(query, (uid, sno, sid,))
+	listens = cursor.fetchall()
+	commit(connection)
+
+	return listens
 
 def create_playlist(title, uid, first_song):
 	"""
