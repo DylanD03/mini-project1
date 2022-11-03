@@ -1,10 +1,11 @@
 import imp
 import sqlite3
 import random
-
+import sys
 def connect():
 	# connects to the sqlite database
-	database_name = "./tables.db"
+	database_name = "tables.db"
+	# database_name = sys.argv[1] # database name is not known beforehand. Can't hardcode
 	connection = sqlite3.connect(database_name)
 	cursor = connection.cursor()
 	return connection, cursor
@@ -14,11 +15,26 @@ def commit(connection):
 	connection.close()
 
 def close_all_sessions(): 
-	pass # TODO : close sessions by setting all NULL values in sessions.end to current date/time
+
+	connection, cursor = connect()
+
+	query = '''
+	UPDATE sessions
+		SET end = DATE('now')
+	WHERE 
+		end IS NULL;
+	'''
+	cursor.execute(query)
+	commit(connection)
 
 def user_login(uid,pwd):
 	""" returns user if succesful login, None if unsuccessful. """
 	connection, cursor = connect()
+
+	assert uid != "" 
+	assert uid is not None
+	assert pwd != "" 
+	assert pwd is not None
 
 	try: 
 		cursor.execute("SELECT * FROM users WHERE uid = (?) AND pwd = (?)", (uid, pwd))
@@ -147,6 +163,7 @@ def insert_song(artist_id, song_title, song_duration):
 		valid = False
 		if new_sid in all_sids:
 			valid = True
+
 
 	# Add new song with unique sid
 	cursor.execute("INSERT INTO songs VALUES (?,?,?)", (new_sid, song_title, song_duration))
@@ -303,12 +320,6 @@ def artist_search(key_words_string):
 	return matches
 	
 	
-	# while True:
-	# 	print(matches)
-
-	# while True:
-	# 	for word in key_words:
-	# 		print(word)
 
 def artist_songs(id):
 	"""
